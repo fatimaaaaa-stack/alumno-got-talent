@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  /* Alumno Got Talent Robotic Theme Colors */
+  --cyber-navy: #0A192F;
+  --cyber-black: #020617;
+  --robot-blue: #00D4FF;
+  
+  --background: var(--cyber-black);
+  --foreground: #ffffff;
+}
+
+@theme inline {
+  --color-cyber-navy: var(--cyber-navy);
+  --color-cyber-black: var(--cyber-black);
+  --color-robot-blue: var(--robot-blue);
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  /* High-end gradient for the startup feel */
+  background: linear-gradient(to bottom, var(--cyber-black), var(--cyber-navy));
+  color: var(--foreground);
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+}
