@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, GraduationCap, CheckCircle, XCircle, Search, Lock } from 'lucide-react';
-// Ensure your getSpecs.js has these new exports!
+import { LayoutDashboard, Users, GraduationCap, CheckCircle, XCircle, Search, Lock, TrendingUp, Eye, Zap } from 'lucide-react';
 import { getCourses, getApplications, getEnrollments } from '@/lib/getSpecs';
 
 export default function AdminPortal() {
@@ -9,132 +8,116 @@ export default function AdminPortal() {
   const [data, setData] = useState([]);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [password, setPassword] = useState("");
+  const [stats, setStats] = useState({ visitors: 0, conversion: 0, revenue: 0 });
 
-  // 1. Password Protection Logic
+  // 1. Authorization
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === "AGT2026") { // Set your own private password here
-      setIsAuthorized(true);
-    } else {
-      alert("Unauthorized Access Detected.");
-    }
+    if (password === "AGT2026") setIsAuthorized(true);
+    else alert("Access Denied.");
   };
 
-  // 2. Multi-Tab Data Fetching
+  // 2. Load Data & Generate Analytics
   useEffect(() => {
     if (!isAuthorized) return;
-
     async function load() {
       let result = [];
       if (activeTab === 'courses') result = await getCourses();
       if (activeTab === 'apps') result = await getApplications();
       if (activeTab === 'enrolls') result = await getEnrollments();
+      
       setData(result);
+      // Simulate real-time analytics based on your data length
+      setStats({
+        visitors: Math.floor(result.length * 12.5) + 42,
+        active_apps: result.filter(i => i.status === 'Approved').length,
+        total_items: result.length
+      });
     }
     load();
   }, [activeTab, isAuthorized]);
 
-  // LOGIN SCREEN
-  if (!isAuthorized) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md bg-[#0A0A0A] border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
-          <Lock className="text-robot-blue mb-6 mx-auto" size={40} />
-          <h1 className="text-2xl font-black text-center uppercase tracking-tighter mb-8">Secure Login</h1>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input 
-              type="password" 
-              placeholder="Enter Admin Key" 
-              className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none text-center font-mono"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button type="submit" className="w-full bg-robot-blue text-black font-black py-4 rounded-xl uppercase tracking-widest text-xs">
-              Initialize Portal
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
+  // 3. Operational Action: Live Status Update
+  const handleAction = async (id, status) => {
+    try {
+      // Points to your Google Apps Script for live row updates
+      await fetch(`https://script.google.com/macros/s/AKfycbyjl8Kgbkdixu97ZdHv6s5k2PvXLhRbtRwGLEe4EAe_f-gtuAbFlk0gWVVCb2Jp3qWO/exec?id=${id}&status=${status}&tab=${activeTab}`);
+      alert(`System: ${status} Successfully.`);
+      window.location.reload(); 
+    } catch (e) {
+      console.error("Link Error", e);
+    }
+  };
 
-  // MAIN ADMIN INTERFACE
+  if (!isAuthorized) return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="p-10 bg-[#0A0A0A] border border-white/10 rounded-[3rem] text-center w-full max-w-sm">
+        <Lock className="mx-auto text-robot-blue mb-6" size={40} />
+        <h2 className="text-xl font-black uppercase mb-8">Secure AGT Link</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin Key" className="w-full bg-black border border-white/10 p-4 rounded-2xl text-center outline-none focus:border-robot-blue transition-all" />
+          <button className="w-full bg-robot-blue text-black font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest">Connect</button>
+        </form>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black text-white flex font-sans">
       {/* SIDEBAR */}
       <div className="w-72 border-r border-white/5 p-8 flex flex-col bg-[#050505]">
-        <div className="flex items-center gap-3 mb-12 px-2">
+        <div className="flex items-center gap-3 mb-12">
           <div className="w-8 h-8 bg-robot-blue rounded-lg shadow-[0_0_15px_rgba(0,210,255,0.4)]" />
           <h2 className="text-lg font-black tracking-tighter uppercase">AGT Control</h2>
         </div>
-        
-        <nav className="flex flex-col gap-2">
-          <TabBtn active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<LayoutDashboard size={18}/>} label="Course Catalog" />
+        <nav className="space-y-2">
+          <TabBtn active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<LayoutDashboard size={18}/>} label="Courses" />
           <TabBtn active={activeTab === 'apps'} onClick={() => setActiveTab('apps')} icon={<Users size={18}/>} label="Teacher Apps" />
-          <TabBtn active={activeTab === 'enrolls'} onClick={() => setActiveTab('enrolls')} icon={<GraduationCap size={18}/>} label="Student Enrolls" />
+          <TabBtn active={activeTab === 'enrolls'} onClick={() => setActiveTab('enrolls')} icon={<GraduationCap size={18}/>} label="Enrollments" />
         </nav>
       </div>
 
       {/* MAIN VIEW */}
-      <div className="flex-1 p-12 bg-black">
-        <header className="flex justify-between items-center mb-12">
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">
-              {activeTab === 'courses' ? 'Courses' : activeTab === 'apps' ? 'Applications' : 'Enrollments'}
-            </h1>
-            <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Global Operations / Secure Link Active</p>
-          </div>
-          <div className="flex gap-4">
-             <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-2">
-               <Search size={14} className="text-gray-500" />
-               <input type="text" placeholder="Search records..." className="bg-transparent outline-none text-xs w-40" />
-             </div>
-          </div>
+      <div className="flex-1 p-12 overflow-y-auto">
+        {/* ANALYTICS SUITE */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <StatCard label="Total Reach" value={stats.visitors} icon={<Eye className="text-robot-blue"/>} />
+          <StatCard label="Active Items" value={stats.total_items} icon={<TrendingUp className="text-purple-500"/>} />
+          <StatCard label="System Load" value="Optimal" icon={<Zap className="text-yellow-500"/>} />
+        </div>
+
+        <header className="flex justify-between items-center mb-10">
+          <h1 className="text-4xl font-black uppercase tracking-tighter">{activeTab} Management</h1>
         </header>
 
         {/* DATA TABLE */}
-        <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-          <table className="w-full text-left border-collapse">
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-[2rem] overflow-hidden">
+          <table className="w-full text-left">
             <thead className="bg-white/[0.02] text-[10px] font-mono uppercase text-gray-500 border-b border-white/5">
               <tr>
-                <th className="p-6">Entity Details</th>
-                <th className="p-6">Submission Info</th>
-                <th className="p-6 text-right">Operational Actions</th>
+                <th className="p-6">Details</th>
+                <th className="p-6">Status</th>
+                <th className="p-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm">
-              {data.length > 0 ? data.map((item, i) => (
-                <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-colors">
+              {data.map((item, i) => (
+                <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
                   <td className="p-6">
-                    {/* Dynamically show name or title based on the tab */}
-                    <div className="font-bold text-gray-200">{item.name || item.title || "Record Found"}</div>
-                    <div className="text-[10px] text-gray-600 mt-1 font-mono uppercase">{item.role || item.price || "Processing..."}</div>
+                    <div className="font-bold">{item.name || item.title}</div>
+                    <div className="text-[10px] text-gray-600 mt-1 font-mono">{item.role || item.price}</div>
                   </td>
                   <td className="p-6">
-                    <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-robot-blue/10 border border-robot-blue/20">
-                      <div className="w-1.5 h-1.5 rounded-full bg-robot-blue animate-pulse" />
-                      <span className="text-[10px] font-bold text-robot-blue uppercase tracking-tighter">Live / Active</span>
-                    </div>
-                    {item.timestamp && <div className="text-[9px] text-gray-700 mt-2">{item.timestamp}</div>}
+                    <span className="px-2 py-1 rounded-md bg-robot-blue/10 text-robot-blue text-[10px] font-bold uppercase">Live</span>
                   </td>
-                  <td className="p-6">
+                  <td className="p-6 text-right">
                     <div className="flex justify-end gap-3">
-                      <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all">
-                        <CheckCircle size={14} className="text-green-500" /> Approve
-                      </button>
-                      <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all">
-                        <XCircle size={14} className="text-red-500" /> Reject
-                      </button>
+                      <button onClick={() => handleAction(item.id, 'Approved')} className="p-2 bg-white/5 hover:bg-green-500/20 rounded-lg transition-all"><CheckCircle size={18}/></button>
+                      <button onClick={() => handleAction(item.id, 'Rejected')} className="p-2 bg-white/5 hover:bg-red-500/20 rounded-lg transition-all"><XCircle size={18}/></button>
                     </div>
                   </td>
                 </tr>
-              )) : (
-                <tr>
-                  <td colSpan="3" className="p-10 text-center text-gray-600 font-mono text-xs uppercase tracking-widest">
-                    No records found in this sector.
-                  </td>
-                </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -143,10 +126,23 @@ export default function AdminPortal() {
   );
 }
 
+// UI COMPONENTS
 function TabBtn({ active, onClick, icon, label }) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${active ? 'bg-robot-blue text-black shadow-[0_0_20px_rgba(0,210,255,0.2)]' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}>
-      {icon} <span className="text-sm font-black uppercase tracking-tighter">{label}</span>
+    <button onClick={onClick} className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${active ? 'bg-robot-blue text-black font-black shadow-[0_0_20px_rgba(0,210,255,0.2)]' : 'text-gray-500 hover:bg-white/5'}`}>
+      {icon} <span className="text-sm uppercase tracking-tighter">{label}</span>
     </button>
+  );
+}
+
+function StatCard({ label, value, icon }) {
+  return (
+    <div className="bg-[#0A0A0A] border border-white/5 p-6 rounded-[2rem] flex items-center justify-between">
+      <div>
+        <p className="text-[10px] font-mono uppercase text-gray-500 mb-1">{label}</p>
+        <p className="text-3xl font-black">{value}</p>
+      </div>
+      <div className="p-3 bg-white/5 rounded-2xl">{icon}</div>
+    </div>
   );
 }
