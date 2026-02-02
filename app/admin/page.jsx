@@ -1,22 +1,64 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, GraduationCap, CheckCircle, XCircle, Search } from 'lucide-react';
-import { getCourses } from '@/lib/getSpecs';
+import { LayoutDashboard, Users, GraduationCap, CheckCircle, XCircle, Search, Lock } from 'lucide-react';
+// Ensure your getSpecs.js has these new exports!
+import { getCourses, getApplications, getEnrollments } from '@/lib/getSpecs';
 
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState('courses');
   const [data, setData] = useState([]);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [password, setPassword] = useState("");
 
+  // 1. Password Protection Logic
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === "AGT2026") { // Set your own private password here
+      setIsAuthorized(true);
+    } else {
+      alert("Unauthorized Access Detected.");
+    }
+  };
+
+  // 2. Multi-Tab Data Fetching
   useEffect(() => {
+    if (!isAuthorized) return;
+
     async function load() {
-      // For now, we pull your course data. 
-      // Later, you can create a getApplications() function in getSpecs.js
-      const courses = await getCourses();
-      setData(courses);
+      let result = [];
+      if (activeTab === 'courses') result = await getCourses();
+      if (activeTab === 'apps') result = await getApplications();
+      if (activeTab === 'enrolls') result = await getEnrollments();
+      setData(result);
     }
     load();
-  }, [activeTab]);
+  }, [activeTab, isAuthorized]);
 
+  // LOGIN SCREEN
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-md bg-[#0A0A0A] border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
+          <Lock className="text-robot-blue mb-6 mx-auto" size={40} />
+          <h1 className="text-2xl font-black text-center uppercase tracking-tighter mb-8">Secure Login</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input 
+              type="password" 
+              placeholder="Enter Admin Key" 
+              className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none text-center font-mono"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button type="submit" className="w-full bg-robot-blue text-black font-black py-4 rounded-xl uppercase tracking-widest text-xs">
+              Initialize Portal
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // MAIN ADMIN INTERFACE
   return (
     <div className="min-h-screen bg-black text-white flex font-sans">
       {/* SIDEBAR */}
@@ -37,7 +79,9 @@ export default function AdminPortal() {
       <div className="flex-1 p-12 bg-black">
         <header className="flex justify-between items-center mb-12">
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">{activeTab}</h1>
+            <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">
+              {activeTab === 'courses' ? 'Courses' : activeTab === 'apps' ? 'Applications' : 'Enrollments'}
+            </h1>
             <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Global Operations / Secure Link Active</p>
           </div>
           <div className="flex gap-4">
@@ -54,22 +98,24 @@ export default function AdminPortal() {
             <thead className="bg-white/[0.02] text-[10px] font-mono uppercase text-gray-500 border-b border-white/5">
               <tr>
                 <th className="p-6">Entity Details</th>
-                <th className="p-6">Current Status</th>
+                <th className="p-6">Submission Info</th>
                 <th className="p-6 text-right">Operational Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm">
-              {data.map((item, i) => (
+              {data.length > 0 ? data.map((item, i) => (
                 <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-colors">
                   <td className="p-6">
-                    <div className="font-bold text-gray-200">{item.title || "Applicant Name"}</div>
-                    <div className="text-[10px] text-gray-600 mt-1 font-mono uppercase">{item.id || "ID-99283"}</div>
+                    {/* Dynamically show name or title based on the tab */}
+                    <div className="font-bold text-gray-200">{item.name || item.title || "Record Found"}</div>
+                    <div className="text-[10px] text-gray-600 mt-1 font-mono uppercase">{item.role || item.price || "Processing..."}</div>
                   </td>
                   <td className="p-6">
                     <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-robot-blue/10 border border-robot-blue/20">
                       <div className="w-1.5 h-1.5 rounded-full bg-robot-blue animate-pulse" />
-                      <span className="text-[10px] font-bold text-robot-blue uppercase tracking-tighter">Live / Pending</span>
+                      <span className="text-[10px] font-bold text-robot-blue uppercase tracking-tighter">Live / Active</span>
                     </div>
+                    {item.timestamp && <div className="text-[9px] text-gray-700 mt-2">{item.timestamp}</div>}
                   </td>
                   <td className="p-6">
                     <div className="flex justify-end gap-3">
@@ -82,7 +128,13 @@ export default function AdminPortal() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="3" className="p-10 text-center text-gray-600 font-mono text-xs uppercase tracking-widest">
+                    No records found in this sector.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
