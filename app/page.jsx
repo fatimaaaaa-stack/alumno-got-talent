@@ -100,11 +100,11 @@ export default function Home() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {[
         { name: "Fatima Imran", role: "CEO & Founder", color: "from-blue-500" },
-        { name: "Tech Lead", role: "Systems Architect", color: "from-robot-blue" },
-        { name: "Growth Lead", role: "Social Media Manager", color: "from-purple-500" },
-        { name: "Lead Instructor", role: "Curriculum Head", color: "from-orange-500" },
-        { name: "UI/UX Designer", role: "Product Designer", color: "from-green-500" },
-        { name: "Operations", role: "Project Manager", color: "from-red-500" }
+        { name: "Zarar Shahid", role: "Tech Head", color: "from-robot-blue" },
+        { name: "Hafsa Imran", role: "Growth Lead", color: "from-purple-500" },
+        { name: "Humna Azeem", role: "Curriculum Head", color: "from-orange-500" },
+        { name: "Moiezah", role: "Product Designer", color: "from-green-500" },
+        { name: "Hamza Imran", role: "Project Manager", color: "from-red-500" }
       ].map((member, i) => (
         <div key={i} className="group relative p-8 rounded-[2rem] bg-white/[0.03] border border-white/10 hover:border-robot-blue/50 transition-all duration-500 overflow-hidden">
           <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${member.color} to-transparent opacity-10 group-hover:opacity-30 blur-2xl transition-opacity`} />
