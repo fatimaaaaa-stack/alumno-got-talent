@@ -11,16 +11,30 @@ export default function Apply() {
     e.preventDefault();
     setLoading(true);
     
-    // This simulates the data being sent to your Google Sheet Applications tab
-    setTimeout(() => {
-      setLoading(false);
+    const formData = new FormData(e.target);
+    const params = new URLSearchParams();
+    // These names (name, role, portfolio) must match your Google Apps Script
+    formData.forEach((value, key) => params.append(key, value));
+
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbyjl8Kgbkdixu97ZdHv6s5k2PvXLhRbtRwGLEe4EAe_f-gtuAbFlk0gWVVCb2Jp3qWO/exec', {
+        method: 'POST',
+        mode: 'no-cors', // Essential for Google Apps Script
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
+      });
+      
       setSubmitted(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Transmission Error:", error);
+      alert("Link failure. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Visual background element */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-robot-blue/50 to-transparent" />
 
       <div className="max-w-md w-full bg-[#0A0A0A] border border-white/10 p-10 rounded-[2rem] shadow-2xl relative">
@@ -41,22 +55,22 @@ export default function Apply() {
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1">
                 <label className="text-[10px] font-mono uppercase text-gray-500 ml-1">Full Name</label>
-                <input required type="text" className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm font-medium" placeholder="e.g. Dr. Aris" />
+                <input name="name" required type="text" className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm font-medium" placeholder="e.g. Dr. Aris" />
               </div>
               
               <div className="space-y-1">
                 <label className="text-[10px] font-mono uppercase text-gray-500 ml-1">Specialization</label>
-                <select className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm appearance-none cursor-pointer">
-                  <option>Artificial Intelligence</option>
-                  <option>Robotics & Automation</option>
-                  <option>Digital Image Processing</option>
-                  <option>Full Stack Engineering</option>
+                <select name="role" className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm appearance-none cursor-pointer">
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Robotics & Automation">Robotics & Automation</option>
+                  <option value="Digital Image Processing">Digital Image Processing</option>
+                  <option value="Full Stack Engineering">Full Stack Engineering</option>
                 </select>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-mono uppercase text-gray-500 ml-1">LinkedIn / Portfolio URL</label>
-                <input required type="url" className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm font-medium" placeholder="https://..." />
+                <input name="portfolio" required type="url" className="w-full bg-black border border-white/10 p-4 rounded-xl focus:border-robot-blue outline-none transition-all text-sm font-medium" placeholder="https://..." />
               </div>
 
               <button disabled={loading} type="submit" className="w-full bg-robot-blue text-black font-black py-5 rounded-2xl hover:shadow-[0_0_30px_rgba(0,210,255,0.3)] disabled:opacity-50 transition-all uppercase tracking-widest text-xs mt-6">
